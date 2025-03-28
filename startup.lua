@@ -26,8 +26,9 @@ local function downloadFile(url, ccFilename)
 
 end
 
--- downloadFile(URL .. "/startup.lua", "startup.lua")
+downloadFile(URL .. "/env.lua", "env.lua")
 downloadFile(URL .. "/main.lua", "main.lua")
 downloadFile(URL .. "/utils.lua", "utils.lua")
+downloadFile(URL .. "/startup.lua", "startup.lua")
 -- term.clear()
 shell.run("main.lua")

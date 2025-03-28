@@ -1,7 +1,7 @@
 -- Utility functions for ComputerCraft turtles
-local env = require("env.lua")
+local env = require("env")
 
-function forceWalk(dir)
+function walk(dir)
     -- dirs: up, down, fw, back (in string form)
     if dir == "fw" then
         while not turtle.forward() do
@@ -14,7 +14,7 @@ function forceWalk(dir)
     elseif dir == "back" then
         turtle.turnRight()
         turtle.turnRight()
-        forceWalk("fw")
+        walk("fw")
         turtle.turnRight()
         turtle.turnRight()
     elseif dir == "up" then
