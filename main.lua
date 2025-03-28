@@ -1,4 +1,7 @@
 require("utils.lua")
+
+local env = require("env.lua")
+
 local size = 10
 for i = 1, 4 do
     for j = 1, size - 1 do -- Reduced by 1 to avoid extra move
