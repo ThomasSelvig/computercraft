@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 // Types for the turtle monitoring system
@@ -40,22 +40,33 @@ function App() {
   const [commandHistory, setCommandHistory] = useState<CommandResponse[]>([]);
 
   // Connect to WebSocket server
+  // Use a ref to track if we've already initialized a connection
+  // This prevents duplicate connections in React Strict Mode
+  const socketInitialized = React.useRef(false);
+
   useEffect(() => {
     let reconnectTimeout: NodeJS.Timeout;
+
     const connectWebSocket = () => {
-      // Determine the WebSocket URL based on current page location
-      // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      // const host = window.location.hostname;
-      // const port = window.location.port || (protocol === "wss:" ? "443" : "80");
-      // const wsUrl = `${protocol}//${host}:${port}`;
-      
-      const wsUrl = "wss://sought-composed-alpaca.ngrok-free.app";
-      console.log("Connecting to WebSocket server at:", wsUrl);
-      
-      // Clear any existing socket before creating a new one
+      // Don't create new connections if we already have one
       if (socket) {
-        socket.close();
+        console.log(
+          "WebSocket connection already exists, skipping initialization"
+        );
+        return;
       }
+
+      // Avoid duplicate initialization in React Strict Mode
+      if (socketInitialized.current) {
+        console.log("Socket initialization already attempted, skipping");
+        return;
+      }
+
+      socketInitialized.current = true;
+
+      const wsUrl = "wss://sought-composed-alpaca.ngrok-free.app";
+      // const wsUrl = process.env.SERVER_WEBSOCKET_URL!;
+      console.log("Connecting to WebSocket server at:", wsUrl);
 
       const ws = new WebSocket(wsUrl);
 
@@ -82,6 +93,7 @@ function App() {
         console.log("Disconnected from WebSocket server");
         setConnected(false);
         setSocket(null);
+        socketInitialized.current = false; // Allow reconnection after close
 
         // Try to reconnect after a delay
         console.log("Will try to reconnect in 5 seconds...");
@@ -119,6 +131,7 @@ function App() {
     // Cleanup function
     return () => {
       if (socket) {
+        console.log("Cleaning up WebSocket connection");
         socket.close();
       }
       clearTimeout(reconnectTimeout);
@@ -131,12 +144,16 @@ function App() {
     if (!socket) {
       console.error("Cannot send command: socket is null");
       // Show error to user so they know something is wrong
-      alert("Cannot send command: WebSocket connection not established. Please try refreshing the page.");
+      alert(
+        "Cannot send command: WebSocket connection not established. Please try refreshing the page."
+      );
       return;
     }
     if (!connected) {
       console.error("Cannot send command: not connected");
-      alert("Cannot send command: Not connected to server. Please check your connection.");
+      alert(
+        "Cannot send command: Not connected to server. Please check your connection."
+      );
       return;
     }
 
@@ -146,9 +163,9 @@ function App() {
       action,
       params,
     };
-    
+
     console.log("Sending JSON:", JSON.stringify(commandObj));
-    
+
     try {
       socket.send(JSON.stringify(commandObj));
       console.log("Command sent successfully");
