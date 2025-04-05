@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import { useGamepads } from "react-gamepads";
 
 // Types for the turtle monitoring system
 interface Turtle {
@@ -38,6 +39,12 @@ function App() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [commandHistory, setCommandHistory] = useState<CommandResponse[]>([]);
+  // controller input
+  const [gamepads, setGamepads] = useState<{}>({});
+  useGamepads((gamepadList) => {
+    setGamepads(gamepadList as object);
+    console.log(gamepadList);
+  });
 
   // Connect to WebSocket server
   // Use a ref to track if we've already initialized a connection
