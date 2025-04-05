@@ -1,0 +1,7 @@
+authtoken: 2rLnVrd6FAnYFWiHQMpkcFVJ1GM_6UiJAnZA9sox3T4euZVkJ
+tunnels:
+  websocket:
+    proto: http
+    addr: 3000
+    bind_tls: true
+

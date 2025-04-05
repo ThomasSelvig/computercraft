@@ -1,5 +1,7 @@
+-- wget https://sought-composed-alpaca.ngrok-free.app/startup.lua
+local URL = "https://sought-composed-alpaca.ngrok-free.app"
 -- wget http://127.0.0.1:1337/startup.lua
-local URL = "http://127.0.0.1:1337"
+-- local URL = "http://127.0.0.1:1337"
 
 local function downloadFile(url, ccFilename)
 
