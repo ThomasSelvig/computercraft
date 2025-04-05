@@ -6,7 +6,7 @@ let turtles = new Map();
 function connectWebSocket() {
   // Determine the WebSocket URL based on the current page location
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${location.host}/turtles`;
+  const wsUrl = `${protocol}//${location.host}`;
 
   socket = new WebSocket(wsUrl);
 
@@ -40,22 +40,49 @@ function handleServerMessage(data) {
   console.log("Received message:", data);
   if (data.type === "turtleUpdate") {
     updateTurtles(data.turtles);
+  } else if (data.type === "commandResponse") {
+    // Update the turtle's last command with the response
+    if (turtles.has(data.turtleId)) {
+      const turtle = turtles.get(data.turtleId);
+      turtle.lastCommand = {
+        ...turtle.lastCommand,
+        result: data.response.success ? "success" : "failed",
+        message: data.response.message,
+        time: Date.now(),
+      };
+      // Update the turtle's status to idle
+      turtle.status = "idle";
+      // Render the updated UI
+      renderTurtleGrid();
+    }
+  } else if (data.type === "commandConfirmation") {
+    console.log("Command confirmed:", data);
+  } else if (data.type === "error") {
+    console.error("Server error:", data.message);
+    alert("Error: " + data.message);
   }
 }
 
 // Update the turtle list and UI
 function updateTurtles(turtleList) {
   // Update our local data
-  turtles.clear();
   turtleList.forEach((turtle) => {
     const isConnected = turtle.status !== "offline";
+    const existingTurtle = turtles.get(turtle.id);
+
+    // Preserve existing command information if available
+    const lastCommand =
+      turtle.lastCommand ||
+      (existingTurtle ? existingTurtle.lastCommand : null);
+
     turtles.set(turtle.id, {
       name: turtle.id,
       connected: isConnected,
       status: turtle.status,
       lastSeen: turtle.lastHeartbeat,
       position: turtle.position,
-      currentCommand: turtle.lastCommand,
+      lastCommand: lastCommand,
+      currentCommand: turtle.status === "executing" ? lastCommand : null,
     });
   });
 
@@ -118,11 +145,18 @@ function renderTurtleGrid() {
     // Create turtle details
     let details = `
             <div class="turtle-details">
-                <div><strong>Status:</strong> ${turtleData.status}</div>
+                <div><strong>Status:</strong> <span class="${
+                  turtleData.status === "idle"
+                    ? "success"
+                    : turtleData.status === "executing"
+                    ? "executing"
+                    : "failed"
+                }">${turtleData.status}</span></div>
                 <div><strong>Last Seen:</strong> ${lastSeen}</div>
                 <div><strong>Fuel:</strong> ${
                   turtleData.position?.fuel || "Unknown"
                 }</div>
+                <div><strong>ID:</strong> ${name}</div>
             </div>
         `;
 
@@ -130,11 +164,13 @@ function renderTurtleGrid() {
     let currentCommand = "";
     if (turtleData.status === "executing" && turtleData.currentCommand) {
       const cmd = turtleData.currentCommand;
-      const duration = Math.round((Date.now() - cmd.startTime) / 1000);
+      const startTime = cmd.startTime || cmd.time || Date.now();
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      const action = cmd.action || "Unknown command";
 
       currentCommand = `
-                <div class="turtle-details">
-                    <div><strong>Executing:</strong> ${cmd.action}</div>
+                <div class="turtle-details" style="background-color: #fff3e0; padding: 8px; border-left: 3px solid #ff9800; margin: 10px 0;">
+                    <div><strong>Executing:</strong> ${action}</div>
                     <div><strong>Duration:</strong> ${duration}s</div>
                     ${
                       cmd.params
@@ -151,22 +187,27 @@ function renderTurtleGrid() {
     let lastCommandResult = "";
     if (turtleData.lastCommand) {
       const cmd = turtleData.lastCommand;
+      const cmdAction = cmd.action || "Unknown";
+      const cmdParams = cmd.params ? JSON.stringify(cmd.params) : "";
+
       lastCommandResult = `
                 <div class="command-result">
-                    <div><strong>Last Command:</strong> ${cmd.id}</div>
+                    <div><strong>Last Command:</strong> ${cmdAction} ${cmdParams}</div>
                     <div class="${
                       cmd.result === "success" ? "success" : "failed"
                     }">
-                        <strong>Result:</strong> ${cmd.result}
+                        <strong>Result:</strong> ${cmd.result || "pending"}
                     </div>
                     ${
                       cmd.message
                         ? `<div><strong>Message:</strong> ${cmd.message}</div>`
                         : ""
                     }
-                    <div><strong>Time:</strong> ${new Date(
+                    <div><strong>Time:</strong> ${
                       cmd.time
-                    ).toLocaleTimeString()}</div>
+                        ? new Date(cmd.time).toLocaleTimeString()
+                        : "In progress"
+                    }</div>
                 </div>
             `;
     }
@@ -223,13 +264,71 @@ function sendCommand(target, action, params) {
     params,
   };
 
+  // Update the turtle's status in the UI immediately
+  if (target !== "all") {
+    if (turtles.has(target)) {
+      const turtle = turtles.get(target);
+      turtle.status = "executing";
+      turtle.currentCommand = {
+        action,
+        params,
+        startTime: Date.now(),
+      };
+      renderTurtleGrid();
+    }
+  } else {
+    // Update all connected turtles
+    turtles.forEach((turtle, id) => {
+      if (turtle.connected) {
+        turtle.status = "executing";
+        turtle.currentCommand = {
+          action,
+          params,
+          startTime: Date.now(),
+        };
+      }
+    });
+    renderTurtleGrid();
+  }
+
   socket.send(JSON.stringify(command));
+}
+
+// Refresh the UI to update durations
+function refreshUI() {
+  if (turtles.size > 0) {
+    renderTurtleGrid();
+  }
 }
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", () => {
+  // Add global styles
+  document.head.insertAdjacentHTML(
+    "beforeend",
+    `
+    <style>
+      .executing {
+        color: #ff9800;
+        font-weight: bold;
+      }
+      .turtle-details {
+        line-height: 1.6;
+      }
+      .command-result {
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+      }
+    </style>
+  `
+  );
+
   // Connect to WebSocket server
   connectWebSocket();
+
+  // Auto-refresh the UI every second to update durations
+  setInterval(refreshUI, 1000);
 
   // Set up command form handler
   document

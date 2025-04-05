@@ -1,54 +1,77 @@
-# React + TypeScript + Vite
+# ComputerCraft Turtle Control Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This web application provides a monitoring and control interface for ComputerCraft turtles using WebSockets.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Real-time turtle status monitoring
+- Control interface for sending commands to turtles
+- Support for individual turtle or group command execution
+- Command history and response tracking
+- Inventory and fuel level visualization
 
-## Expanding the ESLint configuration
+## Architecture
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The dashboard connects to the WebSocket server running on the same host and provides a user-friendly interface for monitoring and controlling turtles in the ComputerCraft environment.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- **WebSocket Connection**: Automatically connects to the WebSocket server and registers as a debug client
+- **Turtle Monitoring**: Displays all connected turtles with their status and last seen time
+- **Command Interface**: Provides UI for executing common turtle commands
+- **Response Tracking**: Shows command execution results with success/failure status
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This project is built with:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- React
+- TypeScript
+- Vite
+
+### Getting Started
+
+1. Install dependencies:
+   ```
+   pnpm install
+   ```
+
+2. Start the development server:
+   ```
+   pnpm dev
+   ```
+
+3. Build for production:
+   ```
+   pnpm build
+   ```
+
+### WebSocket Communication
+
+The dashboard communicates with the server using the following message formats:
+
+1. **Registration Message**:
+   ```json
+   {
+     "type": "register",
+     "debugClient": true
+   }
+   ```
+
+2. **Command Message**:
+   ```json
+   {
+     "type": "command",
+     "target": "TURTLE_NAME or all",
+     "action": "COMMAND_NAME",
+     "params": {
+       // Command-specific parameters
+     }
+   }
+   ```
+
+3. **Server Messages**:
+   - `turtleUpdate`: Updates the list of connected turtles
+   - `commandResponse`: Contains the result of a command execution
+
+## Deployment
+
+The dashboard is designed to be served by the Node.js server in the parent directory. After building, the files will be available in the `dist` directory and can be served as static assets.

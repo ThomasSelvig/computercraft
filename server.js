@@ -12,10 +12,10 @@ const port = process.env.PORT || 1337;
 // Serve static files
 app.use(express.static("public"));
 
-// Serve the debug page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "debug.html"));
-});
+// Serve the index page
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public", "index.html"));
+// });
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -102,7 +102,7 @@ wss.on("connection", (ws, req) => {
           }
 
           updateDebugClients();
-        } else if (data.type === "debug-client") {
+        } else if (data.debugClient) {
           // This is a debug client
           console.log("Debug client connected");
           ws.isDebugClient = true;
@@ -115,6 +115,10 @@ wss.on("connection", (ws, req) => {
         if (turtles.has(data.turtle)) {
           const turtle = turtles.get(data.turtle);
           turtle.lastHeartbeat = Date.now();
+          // If turtle was offline, mark it as active again
+          if (turtle.status === "offline") {
+            turtle.status = "idle";
+          }
           turtle.position = data.position || turtle.position;
           updateDebugClients();
         }
@@ -134,11 +138,17 @@ wss.on("connection", (ws, req) => {
         if (target === "all") {
           let commandSent = false;
           turtles.forEach((turtle, id) => {
-            if (turtle.connection.readyState === WebSocket.OPEN) {
-              turtle.connection.send(JSON.stringify(command));
-              turtle.lastCommand = command;
-              turtle.status = "executing";
-              commandSent = true;
+            if (turtle.connection && turtle.connection.readyState === WebSocket.OPEN) {
+              console.log(`Sending command to all turtles (${id}):`, JSON.stringify(command));
+              try {
+                turtle.connection.send(JSON.stringify(command));
+                console.log(`Command sent successfully to turtle ${id}`);
+                turtle.lastCommand = command;
+                turtle.status = "executing";
+                commandSent = true;
+              } catch (err) {
+                console.error(`Error sending command to turtle ${id}:`, err);
+              }
             } else {
               // Queue command for offline turtle
               if (!commandQueue.has(id)) {
@@ -163,11 +173,21 @@ wss.on("connection", (ws, req) => {
           );
         } else if (turtles.has(target)) {
           const turtle = turtles.get(target);
-          if (turtle.connection.readyState === WebSocket.OPEN) {
-            turtle.connection.send(JSON.stringify(command));
-            turtle.lastCommand = command;
-            turtle.status = "executing";
-            updateDebugClients();
+          if (turtle.connection && turtle.connection.readyState === WebSocket.OPEN) {
+            console.log(`Sending command to turtle ${target}:`, JSON.stringify(command));
+            try {
+              turtle.connection.send(JSON.stringify(command));
+              console.log(`Command sent successfully to turtle ${target}`);
+              turtle.lastCommand = command;
+              turtle.status = "executing";
+              updateDebugClients();
+            } catch (err) {
+              console.error(`Error sending command to turtle ${target}:`, err);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: `Error sending command to turtle ${target}: ${err.message}`
+              }));
+            }
           } else {
             // Queue command for offline turtle
             if (!commandQueue.has(target)) {
@@ -201,6 +221,16 @@ wss.on("connection", (ws, req) => {
         if (turtles.has(ws.turtleId)) {
           const turtle = turtles.get(ws.turtleId);
           turtle.status = "idle";
+
+          // Update the last command with the result
+          if (turtle.lastCommand && turtle.lastCommand.id === data.id) {
+            turtle.lastCommand = {
+              ...turtle.lastCommand,
+              result: data.success ? "success" : "failed",
+              message: data.message,
+              time: Date.now(),
+            };
+          }
 
           // Broadcast the response to debug clients
           broadcastToDebugClients({

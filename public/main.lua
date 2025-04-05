@@ -123,10 +123,13 @@ local function executeCommand(command)
 
     -- Execute the command if handler exists
     if handlers[action] then
+        print("Executing action: " .. action)
+        print("With params: " .. textutils.serialize(params))
         local result = handlers[action]()
         if result then
             result.id = command.id -- Echo back the command ID
             result.turtle = env.TURTLE_NAME
+            print("Command result: " .. textutils.serialize(result))
             return result
         end
     else
@@ -149,10 +152,10 @@ local function main()
         ws.send(textutils.serialiseJSON({
             type = "register",
             turtle = env.TURTLE_NAME,
-            time = os.time()
+            time = os.clock()
         }))
     end)
-    
+
     if success then
         print("Registration message sent successfully")
     else
@@ -161,7 +164,7 @@ local function main()
     end
 
     -- Start heartbeat in a separate coroutine
-    local lastHeartbeat = os.time()
+    local lastHeartbeat = os.clock()
 
     parallel.waitForAll( -- Message handling coroutine
     function()
@@ -169,23 +172,23 @@ local function main()
         while true do
             local timeout = 5
             local timer = os.startTimer(timeout)
-            
+
             -- Wait for a message or a timeout
-            local event, param = os.pullEvent()
-            
-            if event == "timer" and param == timer then
+            local event, param1, param2 = os.pullEvent()
+
+            if event == "timer" and param1 == timer then
                 -- Timeout occurred (no message received within timeout period)
                 print("No messages received for " .. timeout .. " seconds, checking connection...")
-                
+
                 -- Test connection with a ping
                 local pingSuccess, pingErr = pcall(function()
                     ws.send(textutils.serialiseJSON({
                         type = "ping",
                         turtle = env.TURTLE_NAME,
-                        time = os.time()
+                        time = os.clock()
                     }))
                 end)
-                
+
                 if not pingSuccess then
                     print("Ping failed, connection lost. Reconnecting...")
                     ws = connectWebsocket()
@@ -194,8 +197,13 @@ local function main()
                 end
             elseif event == "websocket_message" then
                 -- We received a message
-                local message = param
+                local message = param2
                 if message then
+                    -- print("Debug - Raw message received: " .. tostring(message))
+                    -- print("Debug - Message type: " .. type(message))
+                    -- print("Debug - Message length: " .. #tostring(message))
+
+                    -- Try to parse as JSON
                     local success, data = pcall(textutils.unserialiseJSON, message)
                     if success and data then
                         print("Received command: " .. textutils.serialize(data))
@@ -204,7 +212,28 @@ local function main()
                             ws.send(textutils.serialiseJSON(response))
                         end
                     else
-                        print("Received invalid message: " .. message)
+                        print("Failed to parse JSON: " .. tostring(message))
+                        -- Try to handle different formats
+                        if type(message) == "string" and message:match("^wss?://") then
+                            -- This seems to be a URL, not a JSON message
+                            print("Received URL instead of JSON command")
+                        else
+                            -- Try to extract any valid content
+                            local extracted = message:match("{.*}")
+                            if extracted then
+                                print("Attempting to parse extracted JSON: " .. extracted)
+                                local extractSuccess, extractData = pcall(textutils.unserialiseJSON, extracted)
+                                if extractSuccess and extractData then
+                                    print("Successfully extracted command: " .. textutils.serialize(extractData))
+                                    local response = executeCommand(extractData)
+                                    if response then
+                                        ws.send(textutils.serialiseJSON(response))
+                                    end
+                                else
+                                    print("Failed to parse extracted content")
+                                end
+                            end
+                        end
                     end
                 end
             elseif event == "websocket_closed" then
@@ -217,10 +246,10 @@ local function main()
     function()
         print("Starting heartbeat coroutine")
         local heartbeatAttempts = 0
-        local lastSuccessfulHeartbeat = os.time()
-        
+        local lastSuccessfulHeartbeat = os.clock()
+
         while true do
-            local currentTime = os.time()
+            local currentTime = os.clock()
             if currentTime - lastHeartbeat >= env.HEARTBEAT_INTERVAL then
                 print("Sending heartbeat #" .. heartbeatAttempts)
                 local success, err = pcall(function()
@@ -233,17 +262,17 @@ local function main()
                         }
                     }))
                 end)
-                
+
                 heartbeatAttempts = heartbeatAttempts + 1
-                
+
                 if success then
-                    print("Heartbeat sent successfully")
+                    -- print("Heartbeat sent successfully")
                     lastHeartbeat = currentTime
                     lastSuccessfulHeartbeat = currentTime
-                    heartbeatAttempts = 0
+                    -- heartbeatAttempts = 0
                 else
                     print("Failed to send heartbeat: " .. tostring(err))
-                    
+
                     -- If we haven't had a successful heartbeat in 5 seconds, reconnect
                     if currentTime - lastSuccessfulHeartbeat > 5 then
                         print("Connection appears to be lost. Forcing reconnect...")
@@ -251,7 +280,7 @@ local function main()
                     end
                 end
             end
-            
+
             -- Set a timer and yield to allow other coroutines to run
             local timer = os.startTimer(1)
             os.pullEvent("timer")
