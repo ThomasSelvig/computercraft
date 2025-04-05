@@ -7,7 +7,7 @@ const http = require("http");
 const fs = require("fs");
 
 const app = express();
-const port = process.env.PORT || 1339;
+const port = process.env.PORT || 1337;
 
 // Serve static files
 app.use(express.static("public"));

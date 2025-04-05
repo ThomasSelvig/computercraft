@@ -6,14 +6,14 @@ let turtles = new Map();
 function connectWebSocket() {
   // Determine the WebSocket URL based on the current page location
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${location.host}`;
+  const wsUrl = `${protocol}//${location.host}/turtles`;
 
   socket = new WebSocket(wsUrl);
 
   socket.onopen = () => {
     console.log("Connected to server");
-    // Identify as UI client
-    socket.send(JSON.stringify({ type: "identify", client: "ui" }));
+    // Identify as debug client
+    socket.send(JSON.stringify({ type: "register", "debug-client": true }));
   };
 
   socket.onmessage = (event) => {
@@ -37,7 +37,8 @@ function connectWebSocket() {
 
 // Handle messages from the server
 function handleServerMessage(data) {
-  if (data.type === "init" || data.type === "update") {
+  console.log("Received message:", data);
+  if (data.type === "turtleUpdate") {
     updateTurtles(data.turtles);
   }
 }
@@ -47,7 +48,15 @@ function updateTurtles(turtleList) {
   // Update our local data
   turtles.clear();
   turtleList.forEach((turtle) => {
-    turtles.set(turtle.name, turtle);
+    const isConnected = turtle.status !== "offline";
+    turtles.set(turtle.id, {
+      name: turtle.id,
+      connected: isConnected,
+      status: turtle.status,
+      lastSeen: turtle.lastHeartbeat,
+      position: turtle.position,
+      currentCommand: turtle.lastCommand,
+    });
   });
 
   // Update the UI
