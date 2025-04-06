@@ -18,29 +18,38 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connected, setConnected] = useState(false);
   const [commandHistory, setCommandHistory] = useState<CommandResponse[]>([]);
   
-  // Use a ref to track if we've already initialized a connection
-  // This prevents duplicate connections in React Strict Mode
+  // Use refs to track connection state and reconnection attempts
   const socketInitialized = useRef(false);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 10;
 
   useEffect(() => {
     let reconnectTimeout: NodeJS.Timeout;
 
     const connectWebSocket = () => {
       // Don't create new connections if we already have one
-      if (socket) {
+      if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
         console.log("WebSocket connection already exists, skipping initialization");
         return;
       }
 
-      // Avoid duplicate initialization in React Strict Mode
-      if (socketInitialized.current) {
-        console.log("Socket initialization already attempted, skipping");
+      // Reset socket if it's in a closing/closed state
+      if (socket && (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING)) {
+        setSocket(null);
+      }
+
+      // Check reconnection attempts
+      if (reconnectAttempts.current > maxReconnectAttempts) {
+        console.error(`Failed to connect after ${maxReconnectAttempts} attempts`);
         return;
       }
 
-      socketInitialized.current = true;
+      reconnectAttempts.current += 1;
 
-      const wsUrl = "wss://sought-composed-alpaca.ngrok-free.app";
+      // For both local and production, use relative WebSocket URL
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsPort = window.location.hostname === 'localhost' ? ':1337' : '';
+      const wsUrl = `${wsProtocol}//${window.location.hostname}${wsPort}`;
       console.log("Connecting to WebSocket server at:", wsUrl);
 
       const ws = new WebSocket(wsUrl);
@@ -49,6 +58,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.log("Connected to WebSocket server");
         setConnected(true);
         clearTimeout(reconnectTimeout);
+        
+        // Reset reconnect attempts on successful connection
+        reconnectAttempts.current = 0;
 
         // Register as a debug client
         try {
@@ -68,14 +80,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.log("Disconnected from WebSocket server");
         setConnected(false);
         setSocket(null);
-        socketInitialized.current = false; // Allow reconnection after close
 
-        // Try to reconnect after a delay
-        console.log("Will try to reconnect in 5 seconds...");
+        // Implement exponential backoff for reconnection
+        const delay = Math.min(5000 * Math.pow(1.5, reconnectAttempts.current), 30000);
+        console.log(`Will try to reconnect in ${delay/1000} seconds... (attempt ${reconnectAttempts.current})`);
+        
         reconnectTimeout = setTimeout(() => {
           console.log("Attempting to reconnect...");
           connectWebSocket();
-        }, 5000);
+        }, delay);
       };
 
       ws.onerror = (error) => {
