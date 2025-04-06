@@ -7,8 +7,8 @@
 - **Framework**: React with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
-- **State Management**: React Context API with WebSocket Provider
-- **Routing**: React Router (to be implemented)
+- **State Management**: React Context API with WebSocket Provider (move to Zustand as fast as possible)
+- **Routing**: Next.js App Router
 
 ### Server-Side Architecture
 
@@ -49,12 +49,12 @@ interface WebSocketContextType {
 interface TurtleData {
   id: string;
   label: string;
-  status: 'active' | 'idle' | 'error' | 'offline';
+  status: "active" | "idle" | "error" | "offline";
   position: {
     x: number;
     y: number;
     z: number;
-    heading: 'north' | 'east' | 'south' | 'west';
+    heading: "north" | "east" | "south" | "west";
   };
   fuel: {
     level: number;
@@ -84,7 +84,7 @@ interface Command {
   turtleId: string;
   type: string;
   payload: any;
-  status: 'pending' | 'success' | 'error';
+  status: "pending" | "success" | "error";
   response?: any;
   error?: string;
 }
@@ -97,12 +97,12 @@ interface Task {
   id: string;
   name: string;
   description: string;
-  type: 'movement' | 'building' | 'mining' | 'inventory' | 'custom';
+  type: "movement" | "building" | "mining" | "inventory" | "custom";
   commands: string[];
   parameters: Record<string, any>;
   dependencies: string[];
   estimatedDuration: number;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  status: "pending" | "in_progress" | "completed" | "failed";
   assignedTurtles: string[];
 }
 
@@ -111,7 +111,7 @@ interface Project {
   name: string;
   description: string;
   tasks: Task[];
-  status: 'planning' | 'in_progress' | 'completed' | 'on_hold';
+  status: "planning" | "in_progress" | "completed" | "on_hold";
   progress: number;
   startTime?: number;
   endTime?: number;
@@ -130,6 +130,7 @@ interface Project {
 ### TurtleList Component
 
 **Enhanced Features:**
+
 - Sortable by ID, status, fuel level, etc.
 - Grouping functionality
 - Multi-select capability
@@ -149,6 +150,7 @@ interface Project {
 ### ControlPanel Component
 
 **Enhanced Features:**
+
 - Tabbed interface for different control categories
   - Movement
   - Interaction (dig, place)
@@ -189,6 +191,7 @@ interface Project {
 ### CommandHistory Component
 
 **Enhanced Features:**
+
 - Filterable by command type
 - Groupable by turtle
 - Expandable command details
@@ -220,7 +223,13 @@ interface Project {
 
 ```typescript
 interface ClientMessage {
-  type: 'command' | 'select' | 'requestRegistry' | 'heartbeat' | 'assignTask' | 'createProject';
+  type:
+    | "command"
+    | "select"
+    | "requestRegistry"
+    | "heartbeat"
+    | "assignTask"
+    | "createProject";
   turtleId?: string;
   payload?: any;
 }
@@ -230,7 +239,14 @@ interface ClientMessage {
 
 ```typescript
 interface ServerMessage {
-  type: 'status' | 'registry' | 'commandResponse' | 'error' | 'heartbeat' | 'taskUpdate' | 'projectUpdate';
+  type:
+    | "status"
+    | "registry"
+    | "commandResponse"
+    | "error"
+    | "heartbeat"
+    | "taskUpdate"
+    | "projectUpdate";
   turtleId?: string;
   payload?: any;
 }
@@ -240,7 +256,13 @@ interface ServerMessage {
 
 ```typescript
 interface TurtleEvent {
-  type: 'statusChange' | 'positionUpdate' | 'inventoryChange' | 'fuelUpdate' | 'taskProgress' | 'error';
+  type:
+    | "statusChange"
+    | "positionUpdate"
+    | "inventoryChange"
+    | "fuelUpdate"
+    | "taskProgress"
+    | "error";
   turtleId: string;
   timestamp: number;
   data: any;
