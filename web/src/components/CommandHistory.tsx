@@ -14,7 +14,7 @@ const CommandHistory = () => {
             <div key={index} className="bg-background rounded-md p-3 border-l-4 border-border animate-[fadeIn_0.3s_ease]">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-semibold">{item.turtleId}</span>
-                <span className={`text-xs py-1 px-2 rounded-full text-white ${item.response.success ? 'bg-success' : 'bg-danger'}`}>
+                <span className={`text-xs py-1 px-2 rounded-full text-card ${item.response.success ? 'bg-success' : 'bg-danger'}`}>
                   {item.response.success ? "Success" : "Failed"}
                 </span>
               </div>

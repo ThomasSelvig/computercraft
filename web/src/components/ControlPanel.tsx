@@ -1,4 +1,5 @@
 import { useWebSocket } from './WebSocketProvider';
+import { buttonStyle } from '../utils/helpers';
 
 const ControlPanel = () => {
   const { selectedTurtle, sendCommand } = useWebSocket();
@@ -15,37 +16,37 @@ const ControlPanel = () => {
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => sendCommand("move", { direction: "up" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Up
           </button>
           <button
             onClick={() => sendCommand("move", { direction: "forward" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Forward
           </button>
           <button
             onClick={() => sendCommand("move", { direction: "down" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Down
           </button>
           <button
             onClick={() => sendCommand("move", { direction: "turnLeft" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Turn Left
           </button>
           <button
             onClick={() => sendCommand("move", { direction: "back" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Back
           </button>
           <button
             onClick={() => sendCommand("move", { direction: "turnRight" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Turn Right
           </button>
@@ -57,37 +58,37 @@ const ControlPanel = () => {
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => sendCommand("dig", { direction: "up" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Dig Up
           </button>
           <button
             onClick={() => sendCommand("dig")}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Dig Forward
           </button>
           <button
             onClick={() => sendCommand("dig", { direction: "down" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Dig Down
           </button>
           <button
             onClick={() => sendCommand("place", { direction: "up" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Place Up
           </button>
           <button
             onClick={() => sendCommand("place")}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Place Forward
           </button>
           <button
             onClick={() => sendCommand("place", { direction: "down" })}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Place Down
           </button>
@@ -99,13 +100,13 @@ const ControlPanel = () => {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => sendCommand("getFuelLevel")}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Get Fuel Level
           </button>
           <button
             onClick={() => sendCommand("getInventory")}
-            className="bg-primary text-white border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5"
+            className={buttonStyle}
           >
             Get Inventory
           </button>

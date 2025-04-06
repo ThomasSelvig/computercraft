@@ -17,12 +17,17 @@ export const formatTimeDiff = (timestamp: number) => {
 export const getStatusColor = (status: string) => {
   switch (status) {
     case "idle":
-      return "bg-green-500";
+      return "bg-success";
     case "executing":
-      return "bg-blue-500";
+      return "bg-primary";
     case "offline":
-      return "bg-red-500";
+      return "bg-danger";
     default:
       return "bg-gray-500";
   }
 };
+
+/**
+ * Button styles
+ */
+export const buttonStyle = "bg-primary text-card border-none rounded-md py-3 px-4 text-sm font-medium cursor-pointer transition hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5";

@@ -34,7 +34,7 @@ const TurtleList = () => {
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="font-semibold">{turtle.id}</span>
-                <span className={`text-xs py-1 px-2 rounded-full text-white ${getStatusColor(turtle.status)}`}>
+                <span className={`text-xs py-1 px-2 rounded-full text-card ${getStatusColor(turtle.status)}`}>
                   {turtle.status}
                 </span>
               </div>
