@@ -51,7 +51,22 @@ const TurtleList = () => {
                 </span>
               </div>
               <div className="text-sm text-gray-600">
-                <div>Fuel: {turtle.position.fuel || "Unknown"}</div>
+                <div className="flex justify-between">
+                  <span>Position:</span>
+                  <span>
+                    {turtle.position.x !== undefined && turtle.position.y !== undefined && turtle.position.z !== undefined
+                      ? `(${turtle.position.x}, ${turtle.position.y}, ${turtle.position.z})`
+                      : "Unknown"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Heading:</span>
+                  <span>{turtle.position.heading || "Unknown"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Fuel:</span>
+                  <span>{turtle.position.fuel || "Unknown"}</span>
+                </div>
                 <div>Last seen: {formatTimeDiff(turtle.lastHeartbeat)}</div>
               </div>
             </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "./components/Navigation";
+import WebSocketProviderWrapper from "./components/WebSocketProviderWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +29,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 m-0 p-0`}
       >
-        <div className="dashboard-container">
-          <Navigation />
-          <div className="dashboard-main">
-            {children}
+        <WebSocketProviderWrapper>
+          <div className="dashboard-container">
+            <Navigation />
+            <div className="dashboard-main">
+              {children}
+            </div>
           </div>
-        </div>
+        </WebSocketProviderWrapper>
       </body>
     </html>
   );
