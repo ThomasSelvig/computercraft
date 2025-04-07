@@ -1,21 +1,27 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        primary: '#0052cc', // Darker blue for better contrast
-        secondary: '#087f5b', // Darker green for better contrast
-        background: '#f8f9fa', // Slightly lighter background
+        primary: 'rgb(var(--primary) / <alpha-value>)',
+        'primary-dark': 'rgb(var(--primary-dark) / <alpha-value>)',
+        secondary: 'rgb(var(--secondary) / <alpha-value>)',
+        text: 'rgb(var(--text) / <alpha-value>)',
+        background: 'rgb(var(--background) / <alpha-value>)',
+        success: 'rgb(var(--success) / <alpha-value>)',
+        warning: 'rgb(var(--warning) / <alpha-value>)',
+        error: 'rgb(var(--error) / <alpha-value>)',
+        // Legacy colors for compatibility
         card: '#ffffff',
-        text: '#121212', // Darker text for better contrast
-        border: '#d1d5db', // Slightly darker border
-        danger: '#dc2626', // Darker red for better contrast
-        warning: '#d97706', // Darker orange for better contrast
-        success: '#047857', // Darker green for better contrast
+        border: '#d1d5db',
+        danger: '#dc2626',
       },
       boxShadow: {
         panel: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',

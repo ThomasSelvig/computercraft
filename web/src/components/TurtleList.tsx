@@ -1,3 +1,5 @@
+"use client";
+
 import { useWebSocket } from './WebSocketProvider';
 import { formatTimeDiff, getStatusColor } from '../utils/helpers';
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { useWebSocket } from './WebSocketProvider';
 
 const ConnectionStatus = () => {

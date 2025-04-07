@@ -5,11 +5,11 @@
   "main": "dist/server/index.js",
   "scripts": {
     "build": "tsc",
-    "build:web": "cd web && pnpm build",
+    "build:web": "cd turtleweb && pnpm build",
     "build:all": "pnpm build && pnpm build:web",
     "start": "node dist/server/index.js",
     "dev:server": "ts-node src/server/index.ts",
-    "dev:web": "cd web && pnpm dev",
+    "dev:web": "cd turtleweb && pnpm dev",
     "dev": "concurrently -n \"server,web\" -c \"blue,green\" \"pnpm dev:server\" \"pnpm dev:web\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy-lua": "mkdir -p public && cp -r src/turtle/* public/",
@@ -20,6 +20,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.4.1",
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.3",
     "express": "^5.1.0",
     "fs": "0.0.1-security",
     "http": "0.0.1-security",

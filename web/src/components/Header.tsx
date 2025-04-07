@@ -1,3 +1,5 @@
+"use client";
+
 import ConnectionStatus from './ConnectionStatus';
 
 const Header = () => {
