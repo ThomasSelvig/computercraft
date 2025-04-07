@@ -106,12 +106,20 @@ local function main()
                     else
                         print("Failed to send heartbeat")
                         
-                        -- If we haven't had a successful heartbeat in 5 seconds, reconnect
-                        if currentTime - lastSuccessfulHeartbeat > 5 then
+                        -- If we haven't had a successful heartbeat in 10 seconds, reconnect
+                        if currentTime - lastSuccessfulHeartbeat > 10 then
                             print("Connection appears to be lost. Forcing reconnect...")
-                            error("Heartbeat failed, forcing reconnection")
+                            if not WebSocketClient.isReconnecting then
+                                WebSocketClient.reconnect()
+                            end
                         end
                     end
+                end
+                
+                -- Try to process any queued messages that failed to send earlier
+                if #WebSocketClient.messageQueue > 0 then
+                    print("Processing " .. #WebSocketClient.messageQueue .. " queued messages")
+                    WebSocketClient.processQueue()
                 end
                 
                 -- Set a timer and yield to allow other coroutines to run
